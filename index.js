@@ -3,6 +3,9 @@ const app = express();
 const cors = require('cors');
 var jwt = require('jsonwebtoken');
 
+const stripe = require('stripe')('sk_test_51NEW9oAiGt1HR1vDpPvhUZjxmqvuRq1xDrAo33tz6Qg6pz9iYh2pMWHIqJj642L1KuBhskbLkf83Qs000dNtQoPw007b9YYZRD')
+
+
 app.use(cors())
 app.use(express.json())
 
@@ -44,18 +47,27 @@ async function run() {
         res.send(result)
     })
 
-//  --------------   Currently Working  ---------------
-    app.post('/student/select/:data' , async(req,res) => {
-
-        
-       
+    app.post('/student/select/:data' , async(req,res) => {       
         const update = {
             $addToSet : {
                 selected : req.params.data.split('&')[1]
             }
         }
         const result = await db.updateOne({email:req.params.data.split('&')[0]},update)
-        console.log(result)
+        res.send(result)
+    })
+
+
+    app.post('/create-payment-intent' , async(req,res) => {
+        const { price } = req.body ;
+        const paymentIntent = await stripe.paymentIntents.create({
+                amount : price*100,
+                currency : 'usd' ,
+                payment_method_types : ['card' ]
+        });
+        res.send({
+            clientSecret: paymentIntent.client_secret
+        })
     })
 
 
@@ -120,6 +132,29 @@ async function run() {
         res.send(result)
         
     })
+
+    app.get('/selectedclasses/:email',async(req,res) => {
+
+        const find = await db.findOne({email:req.params.email})
+        const ids = find.selected ;
+        const objectIds = ids.map(id => new ObjectId(id));
+        const query = { _id: { $in: objectIds } };
+        const result = await dbClasses.find(query).toArray();
+        res.send(result)
+
+    })
+
+
+    app.post('/student/deleteselected/:data', async(req,res) => {
+        const update = {
+            $pull : {
+                selected : req.params.data.split('&')[0]
+            }
+        }
+        const result = await db.updateOne({email : req.params.data.split('&')[1]},update)
+        res.send(result)
+    })
+
 
     app.post('/user' , async(req,res) => {
         const result = await db.insertOne(req.body);
