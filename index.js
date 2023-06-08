@@ -56,11 +56,11 @@ async function run() {
        
     })
 
-    // app.get('/admin/allclasses' , async(req,res) => {
-    //     const result = await dbClasses.find({}).toArray();
-    //     res.send(result)
-    //     console.log(result)
-    // })
+    app.get('/admin/allclasses' , async(req,res) => {
+        const result = await dbClasses.find({}).toArray();
+        res.send(result)
+        console.log(result)
+    })
 
     // app.get('/instructors', async(req,res) =>{
     //     const result = await db.find({role:'instructor'}).toArray();
