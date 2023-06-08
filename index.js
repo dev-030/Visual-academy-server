@@ -50,57 +50,57 @@ async function run() {
         res.send(result)
     })
 
-    app.get('/classes', async(req,res) =>{
-        const result = await dbClasses.find({status:'pending'}).toArray();
-        res.send(result)
+    // app.get('/classes', async(req,res) =>{
+    //     const result = await dbClasses.find({status:'pending'}).toArray();
+    //     res.send(result)
        
-    })
+    // })
 
-    app.get('/admin/allclasses' , async(req,res) => {
-        const result = await dbClasses.find({}).toArray();
-        res.send(result)
-        console.log(result)
-    })
+    // app.get('/admin/allclasses' , async(req,res) => {
+    //     const result = await dbClasses.find({}).toArray();
+    //     res.send(result)
+    //     console.log(result)
+    // })
 
-    app.get('/instructors', async(req,res) =>{
-        const result = await db.find({role:'instructor'}).toArray();
-        res.send(result)
-    })
+    // app.get('/instructors', async(req,res) =>{
+    //     const result = await db.find({role:'instructor'}).toArray();
+    //     res.send(result)
+    // })
 
-    app.patch('/admin/makeinstructor/:id' , async(req,res) => {
+    // app.patch('/admin/makeinstructor/:id' , async(req,res) => {
 
-        const update = {
-            $set : {
-                role:'instructor'
-            }
-        }
-        const result = await db.updateOne({_id: new ObjectId(req.params.id)},update)
-        res.send(result)
+    //     const update = {
+    //         $set : {
+    //             role:'instructor'
+    //         }
+    //     }
+    //     const result = await db.updateOne({_id: new ObjectId(req.params.id)},update)
+    //     res.send(result)
     
-    })
+    // })
 
-    app.get('/users/check/:email' , async(req,res) => {
+    // app.get('/users/check/:email' , async(req,res) => {
 
-        const result = await db.findOne({email:req.params.email})
-        res.send(result)
+    //     const result = await db.findOne({email:req.params.email})
+    //     res.send(result)
         
-    })
+    // })
 
-    app.post('/user' , async(req,res) => {
-        const result = await db.insertOne(req.body);
-        res.send(result)
-    })
+    // app.post('/user' , async(req,res) => {
+    //     const result = await db.insertOne(req.body);
+    //     res.send(result)
+    // })
 
-    app.post('/instructor/addclass', async(req,res) => {
-        console.log(req.body)
-        const result = await dbClasses.insertOne(req.body)
-        res.send(result)
-    })
+    // app.post('/instructor/addclass', async(req,res) => {
+    //     console.log(req.body)
+    //     const result = await dbClasses.insertOne(req.body)
+    //     res.send(result)
+    // })
 
-    app.get('/instructor/myclasses/:email' , async(req,res) => {
-        const result = await dbClasses.find({instructor:req.params.email}).toArray()
-        res.send(result);
-    })
+    // app.get('/instructor/myclasses/:email' , async(req,res) => {
+    //     const result = await dbClasses.find({instructor:req.params.email}).toArray()
+    //     res.send(result);
+    // })
 
 
 
