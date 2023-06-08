@@ -79,12 +79,12 @@ async function run() {
     
     })
 
-    // app.get('/users/check/:email' , async(req,res) => {
+    app.get('/users/check/:email' , async(req,res) => {
 
-    //     const result = await db.findOne({email:req.params.email})
-    //     res.send(result)
+        const result = await db.findOne({email:req.params.email})
+        res.send(result)
         
-    // })
+    })
 
     // app.post('/user' , async(req,res) => {
     //     const result = await db.insertOne(req.body);
