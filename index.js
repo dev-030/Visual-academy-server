@@ -67,17 +67,17 @@ async function run() {
         res.send(result)
     })
 
-    // app.patch('/admin/makeinstructor/:id' , async(req,res) => {
+    app.patch('/admin/makeinstructor/:id' , async(req,res) => {
 
-    //     const update = {
-    //         $set : {
-    //             role:'instructor'
-    //         }
-    //     }
-    //     const result = await db.updateOne({_id: new ObjectId(req.params.id)},update)
-    //     res.send(result)
+        const update = {
+            $set : {
+                role:'instructor'
+            }
+        }
+        const result = await db.updateOne({_id: new ObjectId(req.params.id)},update)
+        res.send(result)
     
-    // })
+    })
 
     // app.get('/users/check/:email' , async(req,res) => {
 
