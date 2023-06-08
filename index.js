@@ -133,26 +133,59 @@ async function run() {
         
     })
 
-    app.get('/selectedclasses/:email',async(req,res) => {
+    app.get('/student/selectedclasses/:email',async(req,res) => {
+
 
         const find = await db.findOne({email:req.params.email})
-        const ids = find.selected ;
-        const objectIds = ids.map(id => new ObjectId(id));
-        const query = { _id: { $in: objectIds } };
-        const result = await dbClasses.find(query).toArray();
-        res.send(result)
+
+        if(find.selected){
+            const ids = find.selected ;
+            const objectIds = ids.map(id => new ObjectId(id));
+            const query = { _id: { $in: objectIds } };
+            const result = await dbClasses.find(query).toArray();
+            res.send(result)
+        }
+
+      
+        
 
     })
 
 
+    // ---------------- Currently Working -----------
+2
     app.post('/student/deleteselected/:data', async(req,res) => {
         const update = {
             $pull : {
                 selected : req.params.data.split('&')[0]
             }
         }
+
         const result = await db.updateOne({email : req.params.data.split('&')[1]},update)
         res.send(result)
+    })
+
+
+    app.post('/student/paymentsuccess' , async(req,res) => {
+
+        const update = {
+            $pull : {
+                selected : req.body.classId
+            },
+            $push : {
+                enrolled : req.body.classId ,
+                paymentHistory : req.body
+            }
+        }
+        const result = await db.updateOne({email : req.body.userEmail},update)
+        const updateClass = {
+            $inc : {
+                availableSeats : -1
+            }
+        }
+        const resultClass = await dbClasses.updateOne({_id : new ObjectId(req.body.classId)},updateClass)
+        res.send(resultClass)
+
     })
 
 
