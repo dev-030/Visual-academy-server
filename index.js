@@ -81,8 +81,16 @@ async function run() {
 
 
 
-    app.post('admin/approveclass/:data' , async(req,res) => {
-        console.log(req.params.data)
+    app.post('/admin/approveclass/:data' , async(req,res) => {
+
+        const update = {
+            $set : {
+                status : `${req.params.data.split("&")[1]}`
+            }
+        }
+        const result = await dbClasses.updateOne({_id: new ObjectId(req.params.data.split("&")[0])},update)
+        res.send(result)
+
     })
 
 
