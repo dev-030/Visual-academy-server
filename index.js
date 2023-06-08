@@ -51,7 +51,7 @@ async function run() {
     })
 
     app.get('/classes', async(req,res) =>{
-        const result = await dbClasses.find({status:'pending'}).toArray();
+        const result = await dbClasses.find({status:'approved'}).toArray();
         res.send(result)
        
     })
@@ -81,16 +81,19 @@ async function run() {
 
 
 
-    app.post('/admin/approveclass/:data' , async(req,res) => {
+    app.post('/admin/classchoose/:data' , async(req,res) => {
 
         const update = {
+
             $set : {
-                status : `${req.params.data.split("&")[1]}`
+                status : `${req.params.data.split("&")[1]}`,
             }
+        }
+        if(req.params.data.split("&")[1] == 'denied'){
+            update.$set.feedback = req.body.feedback;
         }
         const result = await dbClasses.updateOne({_id: new ObjectId(req.params.data.split("&")[0])},update)
         res.send(result)
-
     })
 
 
