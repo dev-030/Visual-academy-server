@@ -91,11 +91,11 @@ async function run() {
         res.send(result)
     })
 
-    // app.post('/instructor/addclass', async(req,res) => {
-    //     console.log(req.body)
-    //     const result = await dbClasses.insertOne(req.body)
-    //     res.send(result)
-    // })
+    app.post('/instructor/addclass', async(req,res) => {
+        console.log(req.body)
+        const result = await dbClasses.insertOne(req.body)
+        res.send(result)
+    })
 
     // app.get('/instructor/myclasses/:email' , async(req,res) => {
     //     const result = await dbClasses.find({instructor:req.params.email}).toArray()
