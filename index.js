@@ -62,10 +62,10 @@ async function run() {
         console.log(result)
     })
 
-    // app.get('/instructors', async(req,res) =>{
-    //     const result = await db.find({role:'instructor'}).toArray();
-    //     res.send(result)
-    // })
+    app.get('/instructors', async(req,res) =>{
+        const result = await db.find({role:'instructor'}).toArray();
+        res.send(result)
+    })
 
     // app.patch('/admin/makeinstructor/:id' , async(req,res) => {
 
