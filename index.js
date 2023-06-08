@@ -86,10 +86,10 @@ async function run() {
         
     })
 
-    // app.post('/user' , async(req,res) => {
-    //     const result = await db.insertOne(req.body);
-    //     res.send(result)
-    // })
+    app.post('/user' , async(req,res) => {
+        const result = await db.insertOne(req.body);
+        res.send(result)
+    })
 
     // app.post('/instructor/addclass', async(req,res) => {
     //     console.log(req.body)
