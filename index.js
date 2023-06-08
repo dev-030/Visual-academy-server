@@ -44,6 +44,22 @@ async function run() {
         res.send(result)
     })
 
+//  --------------   Currently Working  ---------------
+    app.post('/student/select/:data' , async(req,res) => {
+
+        
+       
+        const update = {
+            $addToSet : {
+                selected : req.params.data.split('&')[1]
+            }
+        }
+        const result = await db.updateOne({email:req.params.data.split('&')[0]},update)
+        console.log(result)
+    })
+
+
+
 
     app.get('/allusers', async(req,res) =>{
         const result = await db.find({}).toArray();
@@ -111,7 +127,6 @@ async function run() {
     })
 
     app.post('/instructor/addclass', async(req,res) => {
-        console.log(req.body)
         const result = await dbClasses.insertOne(req.body)
         res.send(result)
     })
@@ -119,6 +134,12 @@ async function run() {
     app.get('/instructor/myclasses/:email' , async(req,res) => {
         const result = await dbClasses.find({instructor:req.params.email}).toArray()
         res.send(result);
+    })
+
+
+    // -------------To DO--------------
+    app.patch('/instructor/updateclass' , async(req,res) => {
+        // console.log(req.body)
     })
 
 
