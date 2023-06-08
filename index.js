@@ -59,7 +59,6 @@ async function run() {
     app.get('/admin/allclasses' , async(req,res) => {
         const result = await dbClasses.find({}).toArray();
         res.send(result)
-        console.log(result)
     })
 
     app.get('/instructors', async(req,res) =>{
@@ -79,6 +78,15 @@ async function run() {
     
     })
 
+
+
+
+    app.post('admin/approveclass/:data' , async(req,res) => {
+        console.log(req.params.data)
+    })
+
+
+
     app.get('/users/check/:email' , async(req,res) => {
 
         const result = await db.findOne({email:req.params.email})
@@ -97,10 +105,10 @@ async function run() {
         res.send(result)
     })
 
-    // app.get('/instructor/myclasses/:email' , async(req,res) => {
-    //     const result = await dbClasses.find({instructor:req.params.email}).toArray()
-    //     res.send(result);
-    // })
+    app.get('/instructor/myclasses/:email' , async(req,res) => {
+        const result = await dbClasses.find({instructor:req.params.email}).toArray()
+        res.send(result);
+    })
 
 
 
