@@ -50,11 +50,11 @@ async function run() {
         res.send(result)
     })
 
-    // app.get('/classes', async(req,res) =>{
-    //     const result = await dbClasses.find({status:'pending'}).toArray();
-    //     res.send(result)
+    app.get('/classes', async(req,res) =>{
+        const result = await dbClasses.find({status:'pending'}).toArray();
+        res.send(result)
        
-    // })
+    })
 
     // app.get('/admin/allclasses' , async(req,res) => {
     //     const result = await dbClasses.find({}).toArray();
