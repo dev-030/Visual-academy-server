@@ -185,7 +185,7 @@ async function run() {
     
     app.get('/student/selectedclasses/:email', verifyJWT , verifyStudent ,async(req,res) => {
         const find = await db.findOne({email:req.params.email})
-        if(find.selected){
+        if(find?.selected){
             const ids = find.selected ;
             const objectIds = ids.map(id => new ObjectId(id));
             const query = { _id: { $in: objectIds } };
@@ -208,7 +208,7 @@ async function run() {
 
     app.get('/student/enrolledclasses/:email', verifyJWT , verifyStudent , async(req,res) => {
         const find = await db.findOne({email : req.params.email});
-        if(find.enrolled){
+        if(find?.enrolled){
             const ids = find.enrolled ;
             const objectIds = ids.map(id => new ObjectId(id));
             const query = { _id: { $in: objectIds } };
