@@ -10,15 +10,29 @@ app.use(cors())
 app.use(express.json())
 
 
-const verifyJWT = (req,res,next)=>{
 
+
+const verifyJWT = (req,res,next)=>{
+    const authorization = req.headers.authorization;
+    if (!authorization) {
+        return res.status(401).send({ error: true, message: 'unauthorized access' });
+    }
+    const token = authorization.split(' ')[1];
+    
+    if(token){
+        jwt.verify(token, 'secret', (err, decoded) => {
+        if (err) {
+          return res.status(401).send({ error: true, message: 'unauthorized access' })
+        }
+        req.decoded = decoded;
+        next()
+    })
+    }
 }
 
 
-app.post('/jwt', (req,res)=> {
-    const token = jwt.sign({data: req.body.email}, 'secret', { expiresIn: '1h' })
-    res.send({token})
-})
+
+
 
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = "mongodb+srv://project:bmeGKsPKzpwrqxQt@cluster0.qcnne9d.mongodb.net/?retryWrites=true&w=majority";
@@ -40,62 +54,75 @@ async function run() {
     const dbClasses = client.db('summer-school').collection('Classes');
 
 
+
     
+    app.post('/jwt', (req,res)=> {
+        const token = jwt.sign({data: req.body.email}, 'secret', { expiresIn: '1h' })
+        res.send({token})
+    })
+
+
+  
+    
+    const verifyAdmin = async (req,res,next) => {
+    const email = req?.decoded?.data;
+    const query = { email: email }
+    const user = await db.findOne(query);
+    if (user?.role !== 'admin') {
+      return res.status(403).send({ error: true, message: 'forbidden message' });
+    }
+    next();
+}
+
+    const verifyInstructor = async(req,res,next) => {
+    const email = req?.decoded?.data;
+    const query = { email: email }
+    const user = await db.findOne(query);
+    if (user?.role !== 'instructor') {
+      return res.status(403).send({ error: true, message: 'forbidden message' });
+    }
+    next();
+}
+
+
+const verifyStudent = async(req,res,next) => {
+    const email = req?.decoded?.data;
+    const query = { email: email }
+    const user = await db.findOne(query);
+    // if (user?.role !== 'instructor') {
+    //   return res.status(403).send({ error: true, message: 'forbidden message' });
+    // }
+    if(user?.role !== undefined){
+      return res.status(403).send({ error: true, message: 'forbidden message' });
+    }
+    next();
+}
+
+
+  
+
+    // ----------- Testing route ----------
 
     app.get('/' , async(req,res) => {
         const result = await db.find({}).toArray();
         res.send(result)
     })
 
-    app.post('/student/select/:data' , async(req,res) => {       
-        const update = {
-            $addToSet : {
-                selected : req.params.data.split('&')[1]
-            }
-        }
-        const result = await db.updateOne({email:req.params.data.split('&')[0]},update)
-        res.send(result)
-    })
+    
 
+    // ---------------  Admin Routes -------------------
 
-    app.post('/create-payment-intent' , async(req,res) => {
-        const { price } = req.body ;
-        const paymentIntent = await stripe.paymentIntents.create({
-                amount : price*100,
-                currency : 'usd' ,
-                payment_method_types : ['card' ]
-        });
-        res.send({
-            clientSecret: paymentIntent.client_secret
-        })
-    })
-
-
-
-
-    app.get('/allusers', async(req,res) =>{
+    app.get('/admin/allusers', verifyJWT , verifyAdmin , async(req,res) =>{
         const result = await db.find({}).toArray();
         res.send(result)
     })
 
-    app.get('/classes', async(req,res) =>{
-        const result = await dbClasses.find({status:'approved'}).toArray();
-        res.send(result)
-       
-    })
-
-    app.get('/admin/allclasses' , async(req,res) => {
+    app.get('/admin/allclasses', verifyJWT , verifyAdmin , async(req,res) => {
         const result = await dbClasses.find({}).toArray();
         res.send(result)
     })
 
-    app.get('/instructors', async(req,res) =>{
-        const result = await db.find({role:'instructor'}).toArray();
-        res.send(result)
-    })
-
-    app.patch('/admin/makeinstructor/:id' , async(req,res) => {
-
+    app.patch('/admin/makeinstructor/:id' , verifyJWT , verifyAdmin ,async(req,res) => {
         const update = {
             $set : {
                 role:'instructor'
@@ -103,16 +130,11 @@ async function run() {
         }
         const result = await db.updateOne({_id: new ObjectId(req.params.id)},update)
         res.send(result)
-    
     })
 
 
-
-
-    app.post('/admin/classchoose/:data' , async(req,res) => {
-
+    app.post('/admin/classchoose/:data' , verifyJWT , verifyAdmin ,async(req,res) => {
         const update = {
-
             $set : {
                 status : `${req.params.data.split("&")[1]}`,
             }
@@ -125,19 +147,46 @@ async function run() {
     })
 
 
+    // ----------------- Instructor Routes ---------------------
 
-    app.get('/users/check/:email' , async(req,res) => {
-
-        const result = await db.findOne({email:req.params.email})
-        res.send(result)
-        
+    app.post('/instructor/addclass', verifyJWT , verifyInstructor ,async(req,res) => {
+        if(req.decoded.data == req.body.instructor){
+            const result = await dbClasses.insertOne(req.body)
+            res.send(result)
+        }
     })
 
-    app.get('/student/selectedclasses/:email',async(req,res) => {
+    app.get('/instructor/myclasses/:email', verifyJWT , verifyInstructor , async(req,res) => {
+        if(req.params.email == req.decoded.data){
+            const result = await dbClasses.find({instructor:req.params.email}).toArray()
+            res.send(result);
+        }
+    })
+
+    app.patch('/instructor/updateclass/:id', verifyJWT , verifyInstructor , async(req,res) => {
+        const update = {
+            $set : req.body.updatedData
+        }
+        const result = await dbClasses.updateOne({_id : new ObjectId(req.params.id)} , update)
+        res.send(result)
+    })
 
 
+    // ------------- Student Routes -------------------
+
+    app.post('/student/select/:data', verifyJWT , verifyStudent , async(req,res) => {       
+        const update = {
+            $addToSet : {
+                selected : req.params.data.split('&')[1]
+            }
+        }
+        const result = await db.updateOne({email:req.params.data.split('&')[0]},update)
+        res.send(result)
+    })
+
+    
+    app.get('/student/selectedclasses/:email', verifyJWT , verifyStudent ,async(req,res) => {
         const find = await db.findOne({email:req.params.email})
-
         if(find.selected){
             const ids = find.selected ;
             const objectIds = ids.map(id => new ObjectId(id));
@@ -145,34 +194,51 @@ async function run() {
             const result = await dbClasses.find(query).toArray();
             res.send(result)
         }
-
-      
-        
-
     })
 
 
-    // ---------------- Currently Working -----------
-2
-    app.post('/student/deleteselected/:data', async(req,res) => {
+    app.post('/student/deleteselected/:data', verifyJWT , verifyStudent ,async(req,res) => {
         const update = {
             $pull : {
                 selected : req.params.data.split('&')[0]
             }
         }
-
         const result = await db.updateOne({email : req.params.data.split('&')[1]},update)
         res.send(result)
     })
 
 
-    app.post('/student/paymentsuccess' , async(req,res) => {
+    app.get('/student/enrolledclasses/:email', verifyJWT , verifyStudent , async(req,res) => {
+        const find = await db.findOne({email : req.params.email});
+        if(find.enrolled){
+            const ids = find.enrolled ;
+            const objectIds = ids.map(id => new ObjectId(id));
+            const query = { _id: { $in: objectIds } };
+            const result = await dbClasses.find(query).toArray();
+            res.send(result)
+        }
+    })
 
+
+    app.post('/create-payment-intent', verifyJWT , verifyStudent , async(req,res) => {
+        const { price } = req.body ;
+        const paymentIntent = await stripe.paymentIntents.create({
+            amount : price*100,
+            currency : 'usd' ,
+            payment_method_types : ['card' ]
+        });
+        res.send({
+            clientSecret: paymentIntent.client_secret
+        })
+    })
+
+
+    app.post('/student/paymentsuccess', verifyJWT , verifyStudent , async(req,res) => {
         const update = {
             $pull : {
                 selected : req.body.classId
             },
-            $push : {
+            $addToSet : {
                 enrolled : req.body.classId ,
                 paymentHistory : req.body
             }
@@ -180,7 +246,8 @@ async function run() {
         const result = await db.updateOne({email : req.body.userEmail},update)
         const updateClass = {
             $inc : {
-                availableSeats : -1
+                availableSeats : -1,
+                enrolled : +1
             }
         }
         const resultClass = await dbClasses.updateOne({_id : new ObjectId(req.body.classId)},updateClass)
@@ -189,31 +256,46 @@ async function run() {
     })
 
 
-    app.post('/user' , async(req,res) => {
+    app.get('/student/paymenthistory/:email', verifyJWT , verifyStudent , async(req,res) => {
+        const user = await db.findOne({ email:req.params.email });
+        res.send(user.paymentHistory)
+    })
+
+
+   
+
+   
+    //--------------  Public Routes ------------------
+
+    app.get('/classes', async(req,res) =>{
+        const result = await dbClasses.find({status:'approved'}).toArray();
+        res.send(result)
+    })
+
+   
+    app.get('/instructors', async(req,res) =>{
+        const result = await db.find({role:'instructor'}).toArray();
+        res.send(result)
+    })
+
+ 
+
+    //  ------------- After Login -----------------
+
+    app.get('/dashboard/users/check/:email' ,async(req,res) => {
+        const result = await db.findOne({email:req.params.email})
+        res.send(result)
+    })
+
+
+
+
+    // -------------- On register creating new user -----------------
+
+    app.post('/user' ,async(req,res) => {
         const result = await db.insertOne(req.body);
         res.send(result)
     })
-
-    app.post('/instructor/addclass', async(req,res) => {
-        const result = await dbClasses.insertOne(req.body)
-        res.send(result)
-    })
-
-    app.get('/instructor/myclasses/:email' , async(req,res) => {
-        const result = await dbClasses.find({instructor:req.params.email}).toArray()
-        res.send(result);
-    })
-
-
-    // -------------To DO--------------
-    app.patch('/instructor/updateclass' , async(req,res) => {
-        // console.log(req.body)
-    })
-
-
-
-
-
 
     
     await client.db("admin").command({ ping: 1 });
