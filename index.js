@@ -120,13 +120,13 @@ async function run() {
         res.send(result)
     })
 
-    app.patch('/admin/makeinstructor/:id' , verifyJWT , verifyAdmin ,async(req,res) => {
+    app.patch('/admin/updaterole', verifyJWT , verifyAdmin ,async(req,res) => {
         const update = {
             $set : {
-                role:'instructor'
+                role: `${req.body.role}`
             }
         }
-        const result = await db.updateOne({_id: new ObjectId(req.params.id)},update)
+        const result = await db.updateOne({_id: new ObjectId(req.body.value)},update)
         res.send(result)
     })
 
