@@ -37,7 +37,6 @@ const verifyJWT = (req,res,next)=>{
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = "mongodb+srv://project:bmeGKsPKzpwrqxQt@cluster0.qcnne9d.mongodb.net/?retryWrites=true&w=majority";
 
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -61,8 +60,6 @@ async function run() {
         res.send({token})
     })
 
-
-  
     
     const verifyAdmin = async (req,res,next) => {
     const email = req?.decoded?.data;
@@ -71,8 +68,8 @@ async function run() {
     if (user?.role !== 'admin') {
       return res.status(403).send({ error: true, message: 'forbidden message' });
     }
-    next();
-}
+    next()}
+
 
     const verifyInstructor = async(req,res,next) => {
     const email = req?.decoded?.data;
@@ -81,22 +78,17 @@ async function run() {
     if (user?.role !== 'instructor') {
       return res.status(403).send({ error: true, message: 'forbidden message' });
     }
-    next();
-}
+    next()}
 
 
-const verifyStudent = async(req,res,next) => {
+    const verifyStudent = async(req,res,next) => {
     const email = req?.decoded?.data;
     const query = { email: email }
     const user = await db.findOne(query);
-    // if (user?.role !== 'instructor') {
-    //   return res.status(403).send({ error: true, message: 'forbidden message' });
-    // }
     if(user?.role !== undefined){
       return res.status(403).send({ error: true, message: 'forbidden message' });
     }
-    next();
-}
+    next()}
 
 
   
@@ -292,9 +284,17 @@ const verifyStudent = async(req,res,next) => {
 
     // -------------- On register creating new user -----------------
 
+
+    //   ------ currently working -----------------
+
     app.post('/user' ,async(req,res) => {
-        const result = await db.insertOne(req.body);
-        res.send(result)
+       
+        const find = await db.findOne({email:req.body.email})
+        
+        if(!find){
+            const result = await db.insertOne(req.body);
+            res.send(result)
+        }
     })
 
     
