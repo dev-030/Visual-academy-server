@@ -4,13 +4,15 @@ const cors = require('cors');
 var jwt = require('jsonwebtoken');
 
 const stripe = require('stripe')('sk_test_51NEW9oAiGt1HR1vDpPvhUZjxmqvuRq1xDrAo33tz6Qg6pz9iYh2pMWHIqJj642L1KuBhskbLkf83Qs000dNtQoPw007b9YYZRD')
-
+const uri = "mongodb+srv://project:bmeGKsPKzpwrqxQt@cluster0.qcnne9d.mongodb.net/?retryWrites=true&w=majority";
+const jwtSecret = '79rpYpvwmp4yGmeQ4JkT5hpFDVUntrd0kgl9EdvVQu1b+N1uIlXELOupQknGDvGlWegQGbv9VJ2XbWc4AGgUYoo/nPktkUKimBx5gCzbTvyIuYIEK8U1v49s8uq1ujQ73GU6Yw4DXmECh7qflpn3uPvTgcvNXJwa4gdSKKm/yT7dHZM7mLGXpzUtRBwvePzKxiVTWS3Cg1cezaaNzryIy/GCCzckl6gpOyPBQkopnt7zvZVeRaMniWrWnOrE8gWQlkDTQGGX8UafjjIkietpxxizaUg5vhDE/pUMaP8FEwbAUTcOtcNAoc8l+891iKlX8IRf5eJhyo3Tt5x6mJYBcw=='
 
 app.use(cors())
 app.use(express.json())
 
 
 
+// -------------  Verify JWT function ---------------------
 
 const verifyJWT = (req,res,next)=>{
     const authorization = req.headers.authorization;
@@ -18,9 +20,8 @@ const verifyJWT = (req,res,next)=>{
         return res.status(401).send({ error: true, message: 'unauthorized access' });
     }
     const token = authorization.split(' ')[1];
-    
     if(token){
-        jwt.verify(token, 'secret', (err, decoded) => {
+        jwt.verify(token, jwtSecret , (err, decoded) => {
         if (err) {
           return res.status(401).send({ error: true, message: 'unauthorized access' })
         }
@@ -30,12 +31,10 @@ const verifyJWT = (req,res,next)=>{
     }
 }
 
-
-
+// -----------------------------------------------------
 
 
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
-const uri = "mongodb+srv://project:bmeGKsPKzpwrqxQt@cluster0.qcnne9d.mongodb.net/?retryWrites=true&w=majority";
 
 const client = new MongoClient(uri, {
   serverApi: {
@@ -49,16 +48,23 @@ async function run() {
   try {
     client.connect();
 
-    const db = client.db('summer-school').collection('collection0');
+
+    // --------------- Databse Collection's ---------------
+    const db = client.db('summer-school').collection('allUsers');
     const dbClasses = client.db('summer-school').collection('Classes');
 
+    // ----------------------------------------------------
 
 
-    
+
+    //  -------------------  Create JWT -------------------
     app.post('/jwt', (req,res)=> {
-        const token = jwt.sign({data: req.body.email}, 'secret', { expiresIn: '1h' })
+        const token = jwt.sign({data: req.body.email}, jwtSecret , { expiresIn: '1h' })
         res.send({token})
     })
+    // ----------------------------------------------------
+
+
 
     
     const verifyAdmin = async (req,res,next) => {
@@ -284,13 +290,8 @@ async function run() {
 
     // -------------- On register creating new user -----------------
 
-
-    //   ------ currently working -----------------
-
     app.post('/user' ,async(req,res) => {
-       
         const find = await db.findOne({email:req.body.email})
-        
         if(!find){
             const result = await db.insertOne(req.body);
             res.send(result)
