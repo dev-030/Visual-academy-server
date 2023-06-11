@@ -112,12 +112,20 @@ async function run() {
 
     app.get('/admin/allusers', verifyJWT , verifyAdmin , async(req,res) =>{
         const result = await db.find({}).toArray();
-        res.send(result)
+        if(result){
+            res.send(result)
+        }else{
+            res.send([]);
+        }
     })
 
     app.get('/admin/allclasses', verifyJWT , verifyAdmin , async(req,res) => {
         const result = await dbClasses.find({}).toArray();
-        res.send(result)
+        if(result){
+            res.send(result)
+        }else{
+            res.send([]);
+        }
     })
 
     app.patch('/admin/updaterole', verifyJWT , verifyAdmin ,async(req,res) => {
@@ -158,6 +166,8 @@ async function run() {
         if(req.params.email == req.decoded.data){
             const result = await dbClasses.find({instructor:req.params.email}).toArray()
             res.send(result);
+        }else{
+            res.send([]);
         }
     })
 
@@ -191,6 +201,8 @@ async function run() {
             const query = { _id: { $in: objectIds } };
             const result = await dbClasses.find(query).toArray();
             res.send(result)
+        }else{
+            res.send([]);
         }
     })
 
@@ -214,6 +226,8 @@ async function run() {
             const query = { _id: { $in: objectIds } };
             const result = await dbClasses.find(query).toArray();
             res.send(result)
+        }else{
+            res.send([]);
         }
     })
 
@@ -223,7 +237,7 @@ async function run() {
         const paymentIntent = await stripe.paymentIntents.create({
             amount : price*100,
             currency : 'usd' ,
-            payment_method_types : ['card' ]
+            payment_method_types : ['card']
         });
         res.send({
             clientSecret: paymentIntent.client_secret
@@ -256,7 +270,11 @@ async function run() {
 
     app.get('/student/paymenthistory/:email', verifyJWT , verifyStudent , async(req,res) => {
         const user = await db.findOne({ email:req.params.email });
-        res.send(user.paymentHistory)
+        if(user.paymentHistory){
+            res.send(user.paymentHistory)
+        }else{
+            res.send([]);
+        }
     })
 
 
