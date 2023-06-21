@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 const cors = require('cors');
-var jwt = require('jsonwebtoken');
+var jwt = require('jsonwebtoken'); 
 
 const stripe = require('stripe')('sk_test_51NEW9oAiGt1HR1vDpPvhUZjxmqvuRq1xDrAo33tz6Qg6pz9iYh2pMWHIqJj642L1KuBhskbLkf83Qs000dNtQoPw007b9YYZRD')
 const uri = "mongodb+srv://project:bmeGKsPKzpwrqxQt@cluster0.qcnne9d.mongodb.net/?retryWrites=true&w=majority";
